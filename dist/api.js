@@ -10,26 +10,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @param method Http method to use (one of httpType)
  * @param body Optional body for POST requests
  * @param extraHeaders Optional extra headers to add
+ * @param nonJsonRequest Optional boolean whether this is not a boolean request. Defaults to JSON - set this to true to omit json headers
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
 function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatusCodes) {
-    if (method === void 0) { method = 'GET'; }
+    if (method === void 0) { method = "GET"; }
     var statusResponse = { networkError: false };
     var headers = new Headers();
     if (!nonJsonRequest) {
         // Add default JSON headers
-        headers.append('Accept', 'application/json');
-        headers.append('Content-Type', 'application/json');
+        headers.append("Accept", "application/json");
+        headers.append("Content-Type", "application/json");
     }
     if (extraHeaders) {
         extraHeaders.map(function (h) { return headers.append(h.key, h.value); });
     }
     var params = {
         method: method,
-        headers: headers,
+        headers: headers
     };
-    if (body && (method === 'POST' || method === 'PATCH')) {
+    if (body && (method === "POST" || method === "PATCH")) {
         params.body = JSON.stringify(body);
     }
     return fetch(url, params)
@@ -40,9 +41,13 @@ function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatu
         .then(function (json) {
         // Allow expecting something other than 200s
         var validStatusCode = validStatusCodes
-            ? statusResponse.statusCode && validStatusCodes.find(function (sc) { return sc === statusResponse.statusCode; }) !== undefined
+            ? statusResponse.statusCode &&
+                validStatusCodes.find(function (sc) { return sc === statusResponse.statusCode; }) !==
+                    undefined
             : // Default is all 2xx status codes
-                statusResponse.statusCode && statusResponse.statusCode >= 200 && statusResponse.statusCode < 300;
+                statusResponse.statusCode &&
+                    statusResponse.statusCode >= 200 &&
+                    statusResponse.statusCode < 300;
         if (validStatusCode) {
             // Success - type is T
             statusResponse.data = json;

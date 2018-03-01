@@ -4,7 +4,7 @@ export interface IJsonStatus<T = any, E = any> {
     statusCode?: number;
     networkError: boolean;
 }
-export declare type httpType = 'GET' | 'POST' | 'PUT' | 'PATCH';
+export declare type httpType = "GET" | "POST" | "PUT" | "PATCH";
 export interface IExtraHeader {
     key: string;
     value: string;
@@ -19,6 +19,7 @@ export interface IExtraHeader {
  * @param method Http method to use (one of httpType)
  * @param body Optional body for POST requests
  * @param extraHeaders Optional extra headers to add
+ * @param nonJsonRequest Optional boolean whether this is not a boolean request. Defaults to JSON - set this to true to omit json headers
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
