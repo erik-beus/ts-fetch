@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Sends a standard request, and handles JSON parsing and response mapping to IJSonStatus
  * If the IJsonStatus data is defined, it means the request was successful.
@@ -11,7 +13,7 @@
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
-export function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatusCodes) {
+function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatusCodes) {
     if (method === void 0) { method = 'GET'; }
     var statusResponse = { networkError: false };
     var headers = new Headers();
@@ -57,4 +59,5 @@ export function requestJson(url, method, body, extraHeaders, nonJsonRequest, val
         return statusResponse;
     });
 }
+exports.requestJson = requestJson;
 //# sourceMappingURL=api.js.map
