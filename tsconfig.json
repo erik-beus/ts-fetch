@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "esnext",
+    "target": "es5",
+    "declaration": true,
+    "lib": ["es6", "dom", "es2015.promise"],
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "exclude": ["dist"]
+}

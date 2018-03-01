@@ -1,0 +1,9 @@
+{
+  "name": "npm-test",
+  "version": "0.0.2",
+  "description": "",
+  "author": "Erik Beuschau",
+  "files": ["dist"],
+  "typings": "dist/api.d.ts",
+  "main": "dist/api.js"
+}
