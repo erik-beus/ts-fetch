@@ -1,9 +1,14 @@
 {
   "name": "tfetch",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "author": "Erik Beuschau",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "typings": "dist/api.d.ts",
-  "main": "dist/api.js"
+  "main": "dist/api.js",
+  "dependencies": {
+    "tslib": "^1.9.0"
+  }
 }

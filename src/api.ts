@@ -1,15 +1,38 @@
-export interface IJsonStatus<T = any, E = any> {
-  data?: T;
-  errorData?: E;
-  statusCode?: number;
-  networkError: boolean;
+export interface IJsonStatus<T, E> {
+  data?: T
+  errorData?: E
+  networkError: boolean
+  statusCode?: number
 }
 
-export type httpType = "GET" | "POST" | "PUT" | "PATCH";
+export type httpType = 'GET' | 'POST' | 'PUT' | 'PATCH'
 
 export interface IExtraHeader {
-  key: string;
-  value: string;
+  key: string
+  value: string
+}
+
+export interface IRequestBasicParams {
+  body?: object
+  extraHeaders?: IExtraHeader[]
+  method?: httpType
+  jsonRequest?: boolean
+  url: string
+}
+
+export interface IValidStatusCode {
+  validStatusCodes?: number[]
+  validStatusCodeStart?: number
+  validStatusCodeEnd?: number
+}
+
+export type IRequestParams = IRequestBasicParams & IValidStatusCode
+
+const defaultRequestParams = {
+  method: 'GET',
+  jsonRequest: true,
+  validStatusCodeStart: 200,
+  validStatusCodeEnd: 299,
 }
 
 /**
@@ -27,57 +50,80 @@ export interface IExtraHeader {
  * @return IJsonStatus object with the parsed data or error
  */
 export function requestJson<T, E>(
-  url: string,
-  method: httpType = "GET",
-  body?: object,
-  extraHeaders?: IExtraHeader[],
-  nonJsonRequest?: boolean,
-  validStatusCodes?: number[]
+  requestParams: IRequestParams,
 ): Promise<IJsonStatus<T, E>> {
-  const statusResponse: IJsonStatus<T, E> = { networkError: false };
-  const headers = new Headers();
-  if (!nonJsonRequest) {
+  const processedParams = { ...defaultRequestParams, ...requestParams }
+  const {
+    url,
+    method,
+    body,
+    extraHeaders,
+    jsonRequest,
+    validStatusCodes,
+    validStatusCodeStart,
+    validStatusCodeEnd,
+  } = processedParams
+  const statusResponse: IJsonStatus<T, E> = { networkError: false }
+  const headers = new Headers()
+  if (jsonRequest) {
     // Add default JSON headers
-    headers.append("Accept", "application/json");
-    headers.append("Content-Type", "application/json");
+    headers.append('Accept', 'application/json')
+    headers.append('Content-Type', 'application/json')
   }
   if (extraHeaders) {
-    extraHeaders.map(h => headers.append(h.key, h.value));
+    extraHeaders.map(h => headers.append(h.key, h.value))
   }
   const params: RequestInit = {
     method,
-    headers
-  };
-  if (body && (method === "POST" || method === "PATCH")) {
-    params.body = JSON.stringify(body);
+    headers,
+  }
+  if (body && (method === 'POST' || method === 'PATCH')) {
+    params.body = JSON.stringify(body)
   }
   return fetch(url, params)
     .then((response: Response) => {
-      statusResponse.statusCode = response.status;
-      return response.json();
+      statusResponse.statusCode = response.status
+      return response.json()
     })
     .then((json: T | E) => {
       // Allow expecting something other than 200s
-      const validStatusCode = validStatusCodes
-        ? statusResponse.statusCode &&
-          validStatusCodes.find(sc => sc === statusResponse.statusCode) !==
-            undefined
-        : // Default is all 2xx status codes
-          statusResponse.statusCode &&
-          statusResponse.statusCode >= 200 &&
-          statusResponse.statusCode < 300;
+      const validStatusCode = isValidStatusCode(statusResponse.statusCode!, {
+        validStatusCodes,
+        validStatusCodeStart,
+        validStatusCodeEnd,
+      })
       if (validStatusCode) {
         // Success - type is T
-        statusResponse.data = json as T;
+        statusResponse.data = json as T
       } else {
         // Error - type is ApiError
-        statusResponse.errorData = json as E;
+        statusResponse.errorData = json as E
       }
-      return statusResponse;
+      return statusResponse
     })
     .catch(() => {
       // For now we assume all errors are network errors. They could potentially be JSON parsing errors as well
-      statusResponse.networkError = true;
-      return statusResponse;
-    });
+      statusResponse.networkError = true
+      return statusResponse
+    })
+}
+
+const isValidStatusCode = (
+  statusCode: number,
+  validation: IValidStatusCode,
+) => {
+  const {
+    validStatusCodes,
+    validStatusCodeStart,
+    validStatusCodeEnd,
+  } = validation
+  if (validStatusCodes) {
+    return validStatusCodes.find(sc => sc === statusCode) !== undefined
+  }
+  if (validStatusCodeStart && validStatusCodeEnd) {
+    return (
+      statusCode >= validStatusCodeStart && statusCode <= validStatusCodeEnd
+    )
+  }
+  return false
 }
