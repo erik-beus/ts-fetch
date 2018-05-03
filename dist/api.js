@@ -1,5 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = require("tslib");
+var defaultRequestParams = {
+    method: 'GET',
+    jsonRequest: true,
+    validStatusCodeStart: 200,
+    validStatusCodeEnd: 299,
+};
 /**
  * Sends a standard request, and handles JSON parsing and response mapping to IJSonStatus
  * If the IJsonStatus data is defined, it means the request was successful.
@@ -14,23 +21,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
-function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatusCodes) {
-    if (method === void 0) { method = "GET"; }
+function requestJson(requestParams) {
+    var processedParams = tslib_1.__assign({}, defaultRequestParams, requestParams);
+    var url = processedParams.url, method = processedParams.method, body = processedParams.body, extraHeaders = processedParams.extraHeaders, jsonRequest = processedParams.jsonRequest, validStatusCodes = processedParams.validStatusCodes, validStatusCodeStart = processedParams.validStatusCodeStart, validStatusCodeEnd = processedParams.validStatusCodeEnd;
     var statusResponse = { networkError: false };
     var headers = new Headers();
-    if (!nonJsonRequest) {
+    if (jsonRequest) {
         // Add default JSON headers
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "application/json");
+        headers.append('Accept', 'application/json');
+        headers.append('Content-Type', 'application/json');
     }
     if (extraHeaders) {
         extraHeaders.map(function (h) { return headers.append(h.key, h.value); });
     }
     var params = {
         method: method,
-        headers: headers
+        headers: headers,
     };
-    if (body && (method === "POST" || method === "PATCH")) {
+    if (body && (method === 'POST' || method === 'PATCH')) {
         params.body = JSON.stringify(body);
     }
     return fetch(url, params)
@@ -40,14 +48,11 @@ function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatu
     })
         .then(function (json) {
         // Allow expecting something other than 200s
-        var validStatusCode = validStatusCodes
-            ? statusResponse.statusCode &&
-                validStatusCodes.find(function (sc) { return sc === statusResponse.statusCode; }) !==
-                    undefined
-            : // Default is all 2xx status codes
-                statusResponse.statusCode &&
-                    statusResponse.statusCode >= 200 &&
-                    statusResponse.statusCode < 300;
+        var validStatusCode = isValidStatusCode(statusResponse.statusCode, {
+            validStatusCodes: validStatusCodes,
+            validStatusCodeStart: validStatusCodeStart,
+            validStatusCodeEnd: validStatusCodeEnd,
+        });
         if (validStatusCode) {
             // Success - type is T
             statusResponse.data = json;
@@ -65,4 +70,14 @@ function requestJson(url, method, body, extraHeaders, nonJsonRequest, validStatu
     });
 }
 exports.requestJson = requestJson;
+var isValidStatusCode = function (statusCode, validation) {
+    var validStatusCodes = validation.validStatusCodes, validStatusCodeStart = validation.validStatusCodeStart, validStatusCodeEnd = validation.validStatusCodeEnd;
+    if (validStatusCodes) {
+        return validStatusCodes.find(function (sc) { return sc === statusCode; }) !== undefined;
+    }
+    if (validStatusCodeStart && validStatusCodeEnd) {
+        return (statusCode >= validStatusCodeStart && statusCode <= validStatusCodeEnd);
+    }
+    return false;
+};
 //# sourceMappingURL=api.js.map

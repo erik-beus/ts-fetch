@@ -1,14 +1,27 @@
-export interface IJsonStatus<T = any, E = any> {
+export interface IJsonStatus<T, E> {
     data?: T;
     errorData?: E;
-    statusCode?: number;
     networkError: boolean;
+    statusCode?: number;
 }
-export declare type httpType = "GET" | "POST" | "PUT" | "PATCH";
+export declare type httpType = 'GET' | 'POST' | 'PUT' | 'PATCH';
 export interface IExtraHeader {
     key: string;
     value: string;
 }
+export interface IRequestBasicParams {
+    body?: object;
+    extraHeaders?: IExtraHeader[];
+    method?: httpType;
+    jsonRequest?: boolean;
+    url: string;
+}
+export interface IValidStatusCode {
+    validStatusCodes?: number[];
+    validStatusCodeStart?: number;
+    validStatusCodeEnd?: number;
+}
+export declare type IRequestParams = IRequestBasicParams & IValidStatusCode;
 /**
  * Sends a standard request, and handles JSON parsing and response mapping to IJSonStatus
  * If the IJsonStatus data is defined, it means the request was successful.
@@ -23,4 +36,4 @@ export interface IExtraHeader {
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
-export declare function requestJson<T, E>(url: string, method?: httpType, body?: object, extraHeaders?: IExtraHeader[], nonJsonRequest?: boolean, validStatusCodes?: number[]): Promise<IJsonStatus<T, E>>;
+export declare function requestJson<T, E>(requestParams: IRequestParams): Promise<IJsonStatus<T, E>>;
