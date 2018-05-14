@@ -12,8 +12,8 @@ export interface IExtraHeader {
   value: string
 }
 
-export interface IRequestBasicParams {
-  body?: object
+export interface IRequestBasicParams<B> {
+  body?: B
   extraHeaders?: IExtraHeader[]
   method?: httpType
   jsonRequest?: boolean
@@ -26,7 +26,7 @@ export interface IValidStatusCode {
   validStatusCodeEnd?: number
 }
 
-export type IRequestParams = IRequestBasicParams & IValidStatusCode
+export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
 
 const defaultRequestParams = {
   method: 'GET',
@@ -49,8 +49,8 @@ const defaultRequestParams = {
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
-export function requestJson<T, E>(
-  requestParams: IRequestParams,
+export function requestJson<T, E, B = Object>(
+  requestParams: IRequestParams<B>,
 ): Promise<IJsonStatus<T, E>> {
   const processedParams = { ...defaultRequestParams, ...requestParams }
   const {
