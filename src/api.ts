@@ -12,11 +12,12 @@ export interface IExtraHeader {
   value: string
 }
 
-export interface IRequestBasicParams<B> {
+export interface IRequestBasicParams<B = any> {
   body?: B
   extraHeaders?: IExtraHeader[]
   method?: httpType
   jsonRequest?: boolean
+  jsonResponse?: boolean
   url: string
 }
 
@@ -31,6 +32,7 @@ export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
 const defaultRequestParams = {
   method: 'GET',
   jsonRequest: true,
+  jsonResponse: true,
   validStatusCodeStart: 200,
   validStatusCodeEnd: 299,
 }
@@ -58,6 +60,7 @@ export function requestJson<T, E, B = Object>(
     method,
     body,
     extraHeaders,
+    jsonResponse,
     jsonRequest,
     validStatusCodes,
     validStatusCodeStart,
@@ -67,8 +70,11 @@ export function requestJson<T, E, B = Object>(
   const headers = new Headers()
   if (jsonRequest) {
     // Add default JSON headers
-    headers.append('Accept', 'application/json')
     headers.append('Content-Type', 'application/json')
+  }
+  if (jsonResponse) {
+    headers.append('Accept', 'application/json')
+    // Add default JSON headers
   }
   if (extraHeaders) {
     extraHeaders.map(h => headers.append(h.key, h.value))
@@ -83,7 +89,12 @@ export function requestJson<T, E, B = Object>(
   return fetch(url, params)
     .then((response: Response) => {
       statusResponse.statusCode = response.status
-      return response.json()
+
+      if (jsonResponse) {
+        return response.json()
+      } else {
+        return response
+      }
     })
     .then((json: T | E) => {
       // Allow expecting something other than 200s

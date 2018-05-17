@@ -4,6 +4,7 @@ var tslib_1 = require("tslib");
 var defaultRequestParams = {
     method: 'GET',
     jsonRequest: true,
+    jsonResponse: true,
     validStatusCodeStart: 200,
     validStatusCodeEnd: 299,
 };
@@ -23,13 +24,16 @@ var defaultRequestParams = {
  */
 function requestJson(requestParams) {
     var processedParams = tslib_1.__assign({}, defaultRequestParams, requestParams);
-    var url = processedParams.url, method = processedParams.method, body = processedParams.body, extraHeaders = processedParams.extraHeaders, jsonRequest = processedParams.jsonRequest, validStatusCodes = processedParams.validStatusCodes, validStatusCodeStart = processedParams.validStatusCodeStart, validStatusCodeEnd = processedParams.validStatusCodeEnd;
+    var url = processedParams.url, method = processedParams.method, body = processedParams.body, extraHeaders = processedParams.extraHeaders, jsonResponse = processedParams.jsonResponse, jsonRequest = processedParams.jsonRequest, validStatusCodes = processedParams.validStatusCodes, validStatusCodeStart = processedParams.validStatusCodeStart, validStatusCodeEnd = processedParams.validStatusCodeEnd;
     var statusResponse = { networkError: false };
     var headers = new Headers();
     if (jsonRequest) {
         // Add default JSON headers
-        headers.append('Accept', 'application/json');
         headers.append('Content-Type', 'application/json');
+    }
+    if (jsonResponse) {
+        headers.append('Accept', 'application/json');
+        // Add default JSON headers
     }
     if (extraHeaders) {
         extraHeaders.map(function (h) { return headers.append(h.key, h.value); });
@@ -44,7 +48,12 @@ function requestJson(requestParams) {
     return fetch(url, params)
         .then(function (response) {
         statusResponse.statusCode = response.status;
-        return response.json();
+        if (jsonResponse) {
+            return response.json();
+        }
+        else {
+            return response;
+        }
     })
         .then(function (json) {
         // Allow expecting something other than 200s

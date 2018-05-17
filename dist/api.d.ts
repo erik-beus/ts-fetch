@@ -9,11 +9,12 @@ export interface IExtraHeader {
     key: string;
     value: string;
 }
-export interface IRequestBasicParams {
-    body?: object;
+export interface IRequestBasicParams<B = any> {
+    body?: B;
     extraHeaders?: IExtraHeader[];
     method?: httpType;
     jsonRequest?: boolean;
+    jsonResponse?: boolean;
     url: string;
 }
 export interface IValidStatusCode {
@@ -21,7 +22,7 @@ export interface IValidStatusCode {
     validStatusCodeStart?: number;
     validStatusCodeEnd?: number;
 }
-export declare type IRequestParams = IRequestBasicParams & IValidStatusCode;
+export declare type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode;
 /**
  * Sends a standard request, and handles JSON parsing and response mapping to IJSonStatus
  * If the IJsonStatus data is defined, it means the request was successful.
@@ -36,4 +37,4 @@ export declare type IRequestParams = IRequestBasicParams & IValidStatusCode;
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
  * @return IJsonStatus object with the parsed data or error
  */
-export declare function requestJson<T, E>(requestParams: IRequestParams): Promise<IJsonStatus<T, E>>;
+export declare function requestJson<T, E, B = Object>(requestParams: IRequestParams<B>): Promise<IJsonStatus<T, E>>;
