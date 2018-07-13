@@ -1,0 +1,67 @@
+version: 2
+jobs:
+  build-test:
+    working_directory: '~/sam-tfetch'
+    docker:
+      - image: eu.gcr.io/sam-non-production/circle-gsdk-firebase-node-v2
+        auth:
+          username: _json_key
+          password: $GCLOUD_CONTAINER_REGISTRY_SERVICE_KEY 
+    steps:
+      - checkout
+      - run:
+          name: yarn-build-compile
+          command: |
+            yarn
+            yarn tsc-once
+      - store_artifacts:
+          path: package-lock.json
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  deploy:
+    working_directory: '~/sam-tfetch'
+    docker:
+      - image: eu.gcr.io/sam-non-production/circle-gsdk-firebase-node-v2
+        auth:
+          username: _json_key
+          password: $GCLOUD_CONTAINER_REGISTRY_SERVICE_KEY 
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/sam-tfetch/.npmrc
+      - run:
+          name: NPM-Deploy
+          command: |
+            cd ~/sam-tfetch
+            echo "Add Version Number"
+            npm version ${CIRCLE_TAG} -f -no-git --no-git-tag-version
+
+            echo "Update NPM"
+            npm publish --access public .
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build-test:
+          filters:
+            branches:
+              only:
+                - /.*/
+            tags:
+              only:
+                - /^[0-9]+(\.[0-9]+)*$/
+      - deploy:
+          requires:
+            - build-test
+          filters:
+            tags:
+              only:
+                - /^[0-9]+(\.[0-9]+)*$/
+            branches:
+              ignore:
+                - /.*/
