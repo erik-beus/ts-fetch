@@ -5,7 +5,7 @@ export interface IJsonStatus<T, E> {
   statusCode?: number
 }
 
-export type httpType = 'GET' | 'POST' | 'PUT' | 'PATCH'
+export type httpType = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export interface IExtraHeader {
   key: string
@@ -83,7 +83,10 @@ export function requestJson<T, E, B = Object>(
     method,
     headers,
   }
-  if (body && (method === 'POST' || method === 'PATCH')) {
+  if (
+    body &&
+    (method === 'POST' || method === 'PATCH' || method === 'DELETE')
+  ) {
     params.body = JSON.stringify(body)
   }
   return fetch(url, params)
