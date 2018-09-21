@@ -1,3 +1,5 @@
+import { ApiError } from '@omnicar/sam-types'
+
 export interface IJsonStatus<T, E> {
   data?: T
   errorData?: E
@@ -35,6 +37,7 @@ const defaultRequestParams = {
   jsonResponse: true,
   validStatusCodeStart: 200,
   validStatusCodeEnd: 299,
+  timeout: 10000,
 }
 
 /**
@@ -65,6 +68,7 @@ export function requestJson<T, E, B = Object>(
     validStatusCodes,
     validStatusCodeStart,
     validStatusCodeEnd,
+    timeout,
   } = processedParams
   const statusResponse: IJsonStatus<T, E> = { networkError: false }
   const headers = new Headers()
@@ -89,8 +93,20 @@ export function requestJson<T, E, B = Object>(
   ) {
     params.body = JSON.stringify(body)
   }
-  return fetch(url, params)
-    .then((response: Response) => {
+
+  return Promise.race([
+    fetch(url, params),
+    // this promise will never resolve!
+    new Promise((_, reject) =>
+      setTimeout(() => {
+        const err: ApiError = { message: 'GENERIC_NETWORK_TIMEOUT' }
+        reject(err)
+      }, timeout),
+    ),
+  ])
+    .then((res: {} | Response) => {
+      // response will always be type 'Response'
+      const response = res as Response
       statusResponse.statusCode = response.status
 
       if (jsonResponse) {
@@ -115,9 +131,11 @@ export function requestJson<T, E, B = Object>(
       }
       return statusResponse
     })
-    .catch(() => {
+    .catch((err: E) => {
       // For now we assume all errors are network errors. They could potentially be JSON parsing errors as well
       statusResponse.networkError = true
+      statusResponse.errorData = err
+
       return statusResponse
     })
 }

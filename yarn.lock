@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@omnicar/sam-types@^0.0.83":
+  version "0.0.83"
+  resolved "https://registry.yarnpkg.com/@omnicar/sam-types/-/sam-types-0.0.83.tgz#828dc4db5ee21c656e832c0024fd806dcf475329"
+
 tslib@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
