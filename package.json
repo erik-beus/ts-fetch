@@ -9,11 +9,10 @@
   "typings": "dist/api.d.ts",
   "main": "dist/api.js",
   "dependencies": {
-    "@omnicar/sam-types": "^0.0.83",
-    "tslib": "^1.9.0"
+    "tslib": "^1.9.3"
   },
   "devDependencies": {
-    "typescript": "^2.9.2"
+    "typescript": "^3.0.3"
   },
   "scripts": {
     "tsc": "node node_modules/typescript/bin/tsc -p ./tsconfig.json -w",

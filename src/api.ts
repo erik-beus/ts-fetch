@@ -1,13 +1,13 @@
-import { ApiError } from '@omnicar/sam-types'
-
 export interface IJsonStatus<T, E> {
   data?: T
   errorData?: E
-  networkError: boolean
+  networkError?: NetworkError
   statusCode?: number
 }
 
-export type httpType = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+export type NetworkError = 'TIMEOUT' | 'OTHER'
+
+export type HttpType = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export interface IExtraHeader {
   key: string
@@ -17,7 +17,7 @@ export interface IExtraHeader {
 export interface IRequestBasicParams<B = any> {
   body?: B
   extraHeaders?: IExtraHeader[]
-  method?: httpType
+  method?: HttpType
   jsonRequest?: boolean
   jsonResponse?: boolean
   url: string
@@ -43,15 +43,16 @@ const defaultRequestParams = {
 /**
  * Sends a standard request, and handles JSON parsing and response mapping to IJSonStatus
  * If the IJsonStatus data is defined, it means the request was successful.
- * If the networkError is true it means a network error happened.
- * If data is undefined, and networkError is false, errorData will be defined
+ * If the networkError is set it means a network error happened.
+ * If data is undefined, and networkError is unset, errorData will be defined
  * T is the expected type to be returned on success, E the expected type on errors
- * @param url Full path for request - example: https://github.com/api/test
- * @param method Http method to use (one of httpType)
  * @param body Optional body for POST requests
  * @param extraHeaders Optional extra headers to add
- * @param nonJsonRequest Optional boolean whether this is not a boolean request. Defaults to JSON - set this to true to omit json headers
+ * @param method Http method to use (one of httpType)
+ * @param jsonRequest Optional boolean whether this is a boolean request. Defaults to JSON - set this to false to omit json request headers
+ * @param jsonResponse Optional boolean whether this is a boolean response. Defaults to JSON - set this to false to omit json response headers
  * @param validStatusCodes Optional array of HTTP status codes to consider success. Default is 200 - 299
+ * @param url Full path for request - example: https://github.com/api/test
  * @return IJsonStatus object with the parsed data or error
  */
 export function requestJson<T, E, B = Object>(
@@ -70,7 +71,7 @@ export function requestJson<T, E, B = Object>(
     validStatusCodeEnd,
     timeout,
   } = processedParams
-  const statusResponse: IJsonStatus<T, E> = { networkError: false }
+  const statusResponse: IJsonStatus<T, E> = {}
   const headers = new Headers()
   if (jsonRequest) {
     // Add default JSON headers
@@ -96,10 +97,11 @@ export function requestJson<T, E, B = Object>(
 
   return Promise.race([
     fetch(url, params),
-    // this promise will never resolve!
+    // This promise will never resolve
     new Promise((_, reject) =>
       setTimeout(() => {
-        const err: ApiError = { message: 'GENERIC_NETWORK_TIMEOUT' }
+        statusResponse.statusCode = 408 // Timeout status code
+        const err: NetworkError = 'TIMEOUT'
         reject(err)
       }, timeout),
     ),
@@ -131,11 +133,10 @@ export function requestJson<T, E, B = Object>(
       }
       return statusResponse
     })
-    .catch((err: E) => {
-      // For now we assume all errors are network errors. They could potentially be JSON parsing errors as well
-      statusResponse.networkError = true
-      statusResponse.errorData = err
-
+    .catch((err: NetworkError | Error) => {
+      // The error is either a timeout ('TIMEOUT'), a network error or a JSON parsing error
+      // For now we're only handling the timeout, and calling all others 'OTHER'
+      statusResponse.networkError = err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER'
       return statusResponse
     })
 }
