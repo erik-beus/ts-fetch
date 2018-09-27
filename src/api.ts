@@ -31,6 +31,8 @@ export interface IValidStatusCode {
 
 export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
 
+const bodyHttpTypes: HttpType[] = ['POST', 'PUT', 'PATCH', 'DELETE']
+
 const defaultRequestParams = {
   method: 'GET',
   jsonRequest: true,
@@ -88,10 +90,7 @@ export function requestJson<T, E, B = Object>(
     method,
     headers,
   }
-  if (
-    body &&
-    (method === 'POST' || method === 'PATCH' || method === 'DELETE')
-  ) {
+  if (body && bodyHttpTypes.includes(method as HttpType)) {
     params.body = JSON.stringify(body)
   }
 
