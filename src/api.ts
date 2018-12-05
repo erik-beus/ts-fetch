@@ -20,6 +20,7 @@ export interface IRequestBasicParams<B = any> {
   method?: HttpType
   jsonRequest?: boolean
   jsonResponse?: boolean
+  timeout?: number // timeout in milliseconds
   url: string
 }
 
