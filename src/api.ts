@@ -4,17 +4,17 @@ interface IBaseResponse {
 
 interface ISuccessResponse<T> extends IBaseResponse {
   data: T
-  success: true
+  status: 'OK'
 }
 
 interface IErrorResponse<E> extends IBaseResponse {
   errorData: E
-  success: false
+  status: 'ERROR'
 }
 
 interface INetworkErrorResponse extends IBaseResponse {
   networkError: NetworkError
-  success: false
+  status: 'NETWORK_ERROR'
 }
 
 export type TResponse<T, E> =
