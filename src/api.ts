@@ -1,9 +1,26 @@
-export interface IJsonStatus<T, E> {
-  data?: T
-  errorData?: E
-  networkError?: NetworkError
+interface IBaseResponse {
   statusCode?: number
 }
+
+interface ISuccessResponse<T> extends IBaseResponse {
+  data: T
+  success: true
+}
+
+interface IErrorResponse<E> extends IBaseResponse {
+  errorData: E
+  success: false
+}
+
+interface INetworkErrorResponse extends IBaseResponse {
+  networkError: NetworkError
+  success: false
+}
+
+export type TResponse<T, E> =
+  | ISuccessResponse<T>
+  | IErrorResponse<E>
+  | INetworkErrorResponse
 
 export type NetworkError = 'TIMEOUT' | 'OTHER'
 
@@ -14,8 +31,8 @@ export interface IExtraHeader {
   value: string
 }
 
-export interface IRequestBasicParams<B = any> {
-  body?: B
+export interface IRequestBasicParams<Body = any> {
+  body?: Body
   extraHeaders?: IExtraHeader[]
   method?: HttpType
   jsonRequest?: boolean
@@ -32,6 +49,7 @@ export interface IValidStatusCode {
 
 export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
 
+// The http types that allow a http body
 const bodyHttpTypes: HttpType[] = ['POST', 'PUT', 'PATCH', 'DELETE']
 
 const defaultRequestParams = {
@@ -40,15 +58,15 @@ const defaultRequestParams = {
   jsonResponse: true,
   validStatusCodeStart: 200,
   validStatusCodeEnd: 299,
-  timeout: 10000,
+  timeout: 12000, // 12 seconds default timeout
 }
 
 /**
- * Sends a standard request, and handles JSON parsing and response mapping to IJSonStatus
- * If the IJsonStatus data is defined, it means the request was successful.
+ * Sends a standard request, and handles JSON parsing and response mapping to TResponse
+ * If the TResponse success is true, it means the request was successful.
  * If the networkError is set it means a network error happened.
- * If data is undefined, and networkError is unset, errorData will be defined
- * T is the expected type to be returned on success, E the expected type on errors
+ * T is the expected type to be returned on success, Error the expected type on errors
+ * Body is the type for the body arguments given
  * @param body Optional body for POST requests
  * @param extraHeaders Optional extra headers to add
  * @param method Http method to use (one of httpType)
@@ -58,9 +76,9 @@ const defaultRequestParams = {
  * @param url Full path for request - example: https://github.com/api/test
  * @return IJsonStatus object with the parsed data or error
  */
-export function requestJson<T, E, B = Object>(
-  requestParams: IRequestParams<B>,
-): Promise<IJsonStatus<T, E>> {
+export function request<T, Error, Body = any>(
+  requestParams: IRequestParams<Body>,
+): Promise<TResponse<T, Error>> {
   const processedParams = { ...defaultRequestParams, ...requestParams }
   const {
     url,
@@ -74,15 +92,15 @@ export function requestJson<T, E, B = Object>(
     validStatusCodeEnd,
     timeout,
   } = processedParams
-  const statusResponse: IJsonStatus<T, E> = {}
+  let statusCode: number
   const headers = new Headers()
   if (jsonRequest) {
     // Add default JSON headers
     headers.append('Content-Type', 'application/json')
   }
   if (jsonResponse) {
-    headers.append('Accept', 'application/json')
     // Add default JSON headers
+    headers.append('Accept', 'application/json')
   }
   if (extraHeaders) {
     extraHeaders.map(h => headers.append(h.key, h.value))
@@ -92,15 +110,19 @@ export function requestJson<T, E, B = Object>(
     headers,
   }
   if (body && bodyHttpTypes.includes(method as HttpType)) {
-    params.body = JSON.stringify(body)
+    if (jsonRequest) {
+      params.body = JSON.stringify(body)
+    } else {
+      params.body = body as any // We put the body in directly
+    }
   }
 
   return Promise.race([
     fetch(url, params),
-    // This promise will never resolve
+    // The promise below will never resolve
     new Promise((_, reject) =>
       setTimeout(() => {
-        statusResponse.statusCode = 408 // Timeout status code
+        statusCode = 408 // Timeout status code
         const err: NetworkError = 'TIMEOUT'
         reject(err)
       }, timeout),
@@ -109,7 +131,7 @@ export function requestJson<T, E, B = Object>(
     .then((res: {} | Response) => {
       // response will always be type 'Response'
       const response = res as Response
-      statusResponse.statusCode = response.status
+      statusCode = response.status
 
       if (jsonResponse) {
         return response.json()
@@ -117,27 +139,40 @@ export function requestJson<T, E, B = Object>(
         return response
       }
     })
-    .then((json: T | E) => {
+    .then((json: T | Error) => {
       // Allow expecting something other than 200s
-      const validStatusCode = isValidStatusCode(statusResponse.statusCode!, {
+      const validStatusCode = isValidStatusCode(statusCode, {
         validStatusCodes,
         validStatusCodeStart,
         validStatusCodeEnd,
       })
       if (validStatusCode) {
         // Success - type is T
-        statusResponse.data = json as T
+        const response: ISuccessResponse<T> = {
+          statusCode,
+          data: json as T,
+          success: true,
+        }
+        return response
       } else {
-        // Error - type is ApiError
-        statusResponse.errorData = json as E
+        // Error - type is Error
+        const response: IErrorResponse<Error> = {
+          statusCode,
+          errorData: json as Error,
+          success: false,
+        }
+        return response
       }
-      return statusResponse
     })
     .catch((err: NetworkError | Error) => {
       // The error is either a timeout ('TIMEOUT'), a network error or a JSON parsing error
       // For now we're only handling the timeout, and calling all others 'OTHER'
-      statusResponse.networkError = err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER'
-      return statusResponse
+      const response: INetworkErrorResponse = {
+        statusCode,
+        networkError: err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER',
+        success: false,
+      }
+      return response
     })
 }
 

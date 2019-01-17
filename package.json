@@ -1,7 +1,8 @@
 {
-  "name": "@omnicar/sam-tfetch",
+  "name": "ts-fetch",
   "description": "A wrapper around fetch that allows type safety in request/response.",
-  "author": "Omnicar A/S",
+  "author": "Erik Beuschau",
+  "homepage": "https://github.com/erikoc/tfetch",
   "license": "MIT",
   "files": [
     "dist"
@@ -12,10 +13,16 @@
     "tslib": "^1.9.3"
   },
   "devDependencies": {
-    "typescript": "^3.0.3"
+    "husky": "^1.3.1",
+    "typescript": "^3.2.2"
   },
   "scripts": {
     "tsc": "node node_modules/typescript/bin/tsc -p ./tsconfig.json -w",
     "tsc-once": "node node_modules/typescript/bin/tsc -p ./tsconfig.json"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run tsc-once"
+    }
   }
 }
