@@ -1,43 +1,35 @@
 version: 2
 jobs:
   build-test:
-    working_directory: '~/sam-tfetch'
+    working_directory: '~/ts-fetch'
     docker:
-      - image: eu.gcr.io/sam-non-production/circle-gsdk-firebase-node-v2
-        auth:
-          username: _json_key
-          password: $GCLOUD_CONTAINER_REGISTRY_SERVICE_KEY 
+      - image: circleci/node:10
     steps:
       - checkout
       - run:
-          name: yarn-build-compile
+          name: npm-build-compile
           command: |
-            yarn
-            yarn tsc-once
-      - store_artifacts:
-          path: package-lock.json
+            npm
+            npm run tsc-once
       - persist_to_workspace:
           root: .
           paths:
             - .
   deploy:
-    working_directory: '~/sam-tfetch'
+    working_directory: '~/ts-fetch'
     docker:
-      - image: eu.gcr.io/sam-non-production/circle-gsdk-firebase-node-v2
-        auth:
-          username: _json_key
-          password: $GCLOUD_CONTAINER_REGISTRY_SERVICE_KEY 
+      - image: circleci/node:10
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run:
           name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/sam-tfetch/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/ts-fetch/.npmrc
       - run:
           name: NPM-Deploy
           command: |
-            cd ~/sam-tfetch
+            cd ~/ts-fetch
             echo "Add Version Number"
             npm version ${CIRCLE_TAG} -f -no-git --no-git-tag-version
 
