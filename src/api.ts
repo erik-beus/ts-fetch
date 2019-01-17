@@ -151,7 +151,7 @@ export function request<T, Error, Body = any>(
         const response: ISuccessResponse<T> = {
           statusCode,
           data: json as T,
-          success: true,
+          status: 'OK',
         }
         return response
       } else {
@@ -159,7 +159,7 @@ export function request<T, Error, Body = any>(
         const response: IErrorResponse<Error> = {
           statusCode,
           errorData: json as Error,
-          success: false,
+          status: 'ERROR',
         }
         return response
       }
@@ -170,7 +170,7 @@ export function request<T, Error, Body = any>(
       const response: INetworkErrorResponse = {
         statusCode,
         networkError: err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER',
-        success: false,
+        status: 'NETWORK_ERROR',
       }
       return response
     })
