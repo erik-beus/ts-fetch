@@ -9,7 +9,7 @@ jobs:
       - run:
           name: npm-build-compile
           command: |
-            npm
+            npm i
             npm run tsc-once
       - persist_to_workspace:
           root: .
