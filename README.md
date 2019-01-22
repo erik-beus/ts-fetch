@@ -9,7 +9,7 @@ By passing generics it's possible to indicate which types are expected on succes
 const response = await request<{name: string}, {errorCode: number}>({
   url: 'https://myapi.com'
 })
-if (response.success) {
+if (response.status === 'OK') {
   // Work with response.data in a typesafe way 👍
 }
 ```
@@ -24,9 +24,9 @@ const response = await request<never, { errorCode: number }>({
   validStatusCodes: [201], // Only 201 indicates success
   extraHeaders: [{ key: 'Secret', value: '2lknf3oihvls' }],
 })
-if (response.success) {
+if (response.status === 'OK') {
   // Things went well 👍
-} else if (response.networkError) {
+} else if (response.status === 'NETWORK_ERROR') {
   // Handle network error
 } else {
   // Work with the returned error data that you expect in your response
