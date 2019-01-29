@@ -17,7 +17,7 @@ If the response is not a valid JSON response and the `jsonResponse` was set to `
 
 ## Example usages
 ### Basic request with no arguments
-```
+```ts
 const response = await request<{name: string}, {errorCode: number}>({
   url: 'https://myapi.com'
 })
@@ -26,7 +26,7 @@ if (response.status === 'OK') {
 }
 ```
 ### Request with custom arguments and a non-JSON response
-```
+```ts
 const response = await request<never, { errorCode: number }>({
   url: 'https://myapi.com',
   body: { name: 'Updated name of user' },
