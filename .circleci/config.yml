@@ -11,6 +11,9 @@ jobs:
           command: |
             npm i
             npm run tsc-once
+      - run:
+          name: test
+          command: npm run test
       - persist_to_workspace:
           root: .
           paths:

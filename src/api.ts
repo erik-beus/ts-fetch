@@ -22,7 +22,7 @@ export type TResponse<T, E> =
   | IErrorResponse<E>
   | INetworkErrorResponse
 
-export type NetworkError = 'TIMEOUT' | 'OTHER'
+export type NetworkError = 'TIMEOUT' | 'JSON_PARSING' | 'OTHER'
 
 export type HttpType = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -136,10 +136,10 @@ export function request<T, Error, Body = any>(
       if (jsonResponse) {
         return response.json()
       } else {
-        return response
+        return response.body
       }
     })
-    .then((json: T | Error) => {
+    .then((data: T | Error) => {
       // Allow expecting something other than 200s
       const validStatusCode = isValidStatusCode(statusCode, {
         validStatusCodes,
@@ -150,7 +150,7 @@ export function request<T, Error, Body = any>(
         // Success - type is T
         const response: ISuccessResponse<T> = {
           statusCode,
-          data: json as T,
+          data: data as T,
           status: 'OK',
         }
         return response
@@ -158,7 +158,7 @@ export function request<T, Error, Body = any>(
         // Error - type is Error
         const response: IErrorResponse<Error> = {
           statusCode,
-          errorData: json as Error,
+          errorData: data as Error,
           status: 'ERROR',
         }
         return response
@@ -167,9 +167,13 @@ export function request<T, Error, Body = any>(
     .catch((err: NetworkError | Error) => {
       // The error is either a timeout ('TIMEOUT'), a network error or a JSON parsing error
       // For now we're only handling the timeout, and calling all others 'OTHER'
+      let networkError: NetworkError = err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER'
+      if (err.hasOwnProperty('type') && (err as any).type === 'invalid-json') {
+        networkError = 'JSON_PARSING'
+      }
       const response: INetworkErrorResponse = {
         statusCode,
-        networkError: err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER',
+        networkError,
         status: 'NETWORK_ERROR',
       }
       return response

@@ -2,6 +2,18 @@
 
 Small wrapper around `fetch` making it possible to have type safety around network requests.
 By passing generics it's possible to indicate which types are expected on success/error and work directly with those types.
+`ts-fetch` is slightly opinionated, but it's possible to override all settings. These are the default settings:
+```ts
+const defaultRequestParams = {
+  method: 'GET',
+  jsonRequest: true,
+  jsonResponse: true,
+  validStatusCodeStart: 200,
+  validStatusCodeEnd: 299,
+  timeout: 12000, // 12 seconds default timeout
+}
+```
+If the response is not a valid JSON response and the `jsonResponse` was set to `true`, the request would return an error.
 
 ## Example usages
 ### Basic request with no arguments

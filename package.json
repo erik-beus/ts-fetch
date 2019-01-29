@@ -13,12 +13,36 @@
     "tslib": "^1.9.3"
   },
   "devDependencies": {
+    "@types/jest": "^23.3.13",
+    "@types/node": "^10.12.19",
     "husky": "^1.3.1",
+    "jest": "^24.0.0",
+    "jest-fetch-mock": "^2.1.0",
+    "ts-jest": "^23.10.5",
     "typescript": "^3.2.2"
   },
   "scripts": {
     "tsc": "node node_modules/typescript/bin/tsc -p ./tsconfig.json -w",
-    "tsc-once": "node node_modules/typescript/bin/tsc -p ./tsconfig.json"
+    "tsc-once": "node node_modules/typescript/bin/tsc -p ./tsconfig.json",
+    "test": "jest",
+    "test-watch": "jest --watchAll"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(ts?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "automock": false,
+    "setupFiles": [
+      "./test/setupJest.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "./dist"
+    ]
   },
   "husky": {
     "hooks": {

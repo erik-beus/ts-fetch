@@ -25,5 +25,5 @@
     "stripInternal": true,
     "target": "es5"
   },
-  "exclude": ["dist"]
+  "exclude": ["node_modules/", "dist/", "test/", "src/**/*.test.ts"]
 }
