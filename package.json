@@ -2,7 +2,7 @@
   "name": "ts-fetch",
   "description": "A wrapper around fetch that allows type safety in request/response.",
   "author": "Erik Beuschau",
-  "homepage": "https://github.com/erikoc/tfetch",
+  "homepage": "https://github.com/erik-beus/ts-fetch",
   "license": "MIT",
   "files": [
     "dist"
