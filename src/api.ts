@@ -114,7 +114,7 @@ export function requestJson<T, E, B = Object>(
       if (jsonResponse) {
         return response.json()
       } else {
-        return response
+        return response.text()
       }
     })
     .then((json: T | E) => {
