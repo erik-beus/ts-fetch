@@ -132,12 +132,13 @@ export function request<T, Error, Body = any>(
       // response will always be type 'Response'
       const response = res as Response
       statusCode = response.status
-
+      // TODO: consider using actual response Accept headers to decide on json vs others
       if (jsonResponse) {
         return response.json()
       } else {
-        return response.body
+        return response.text()
       }
+      // TODO: consider using response.formData() as well?
     })
     .then((data: T | Error) => {
       // Allow expecting something other than 200s
