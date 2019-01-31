@@ -9,7 +9,7 @@ jobs:
       - run:
           name: npm-build-compile
           command: |
-            npm i
+            npm ci
             npm run tsc-once
       - run:
           name: test
