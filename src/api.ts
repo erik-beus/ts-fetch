@@ -31,7 +31,7 @@ export interface IExtraHeader {
   value: string
 }
 
-export interface IRequestBasicParams<Body = any> {
+export interface IRequestBasicParams<Body extends BodyInit> {
   body?: Body
   extraHeaders?: IExtraHeader[]
   method?: HttpType
@@ -47,13 +47,14 @@ export interface IValidStatusCode {
   validStatusCodeEnd?: number
 }
 
-export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
+export type IRequestParams<B extends BodyInit> = IRequestBasicParams<B> &
+  IValidStatusCode
 
 // The http types that allow a http body
 const bodyHttpTypes: HttpType[] = ['POST', 'PUT', 'PATCH', 'DELETE']
 
 const defaultRequestParams = {
-  method: 'GET',
+  method: 'GET' as HttpType,
   jsonRequest: true,
   jsonResponse: true,
   validStatusCodeStart: 200,
@@ -76,9 +77,9 @@ const defaultRequestParams = {
  * @param url Full path for request - example: https://github.com/api/test
  * @return IJsonStatus object with the parsed data or error
  */
-export function request<T, Error, Body = any>(
+export function request<Return, Error, Body extends BodyInit = never>(
   requestParams: IRequestParams<Body>,
-): Promise<TResponse<T, Error>> {
+): Promise<TResponse<Return, Error>> {
   const processedParams = { ...defaultRequestParams, ...requestParams }
   const {
     url,
@@ -93,27 +94,27 @@ export function request<T, Error, Body = any>(
     timeout,
   } = processedParams
   let statusCode: number
-  const headers = new Headers()
+  const headers: Record<string, string> = {}
   if (jsonRequest) {
     // Add default JSON headers
-    headers.append('Content-Type', 'application/json')
+    headers['Content-Type'] = 'application/json'
   }
   if (jsonResponse) {
     // Add default JSON headers
-    headers.append('Accept', 'application/json')
+    headers['Accept'] = 'application/json'
   }
   if (extraHeaders) {
-    extraHeaders.map(h => headers.append(h.key, h.value))
+    extraHeaders.forEach(h => (headers[h.key] = h.value))
   }
   const params: RequestInit = {
     method,
     headers,
   }
-  if (body && bodyHttpTypes.includes(method as HttpType)) {
+  if (body && bodyHttpTypes.includes(method)) {
     if (jsonRequest) {
       params.body = JSON.stringify(body)
     } else {
-      params.body = body as any // We put the body in directly
+      params.body = body
     }
   }
 
@@ -140,7 +141,7 @@ export function request<T, Error, Body = any>(
       }
       // TODO: consider using response.formData() as well?
     })
-    .then((data: T | Error) => {
+    .then((data: Return | Error) => {
       // Allow expecting something other than 200s
       const validStatusCode = isValidStatusCode(statusCode, {
         validStatusCodes,
@@ -149,9 +150,9 @@ export function request<T, Error, Body = any>(
       })
       if (validStatusCode) {
         // Success - type is T
-        const response: ISuccessResponse<T> = {
+        const response: ISuccessResponse<Return> = {
           statusCode,
-          data: data as T,
+          data: data as Return,
           status: 'OK',
         }
         return response

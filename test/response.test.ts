@@ -1,4 +1,8 @@
-import { request } from './api'
+import { request } from '../src/api'
+import { FetchMock } from 'jest-fetch-mock'
+
+// ts hack to avoid ts forgetting about fetchMock now and then
+const fetchMock: FetchMock = (global as any).fetchMock
 
 const url = 'https://test.com'
 
