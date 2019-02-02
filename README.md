@@ -1,5 +1,10 @@
 # ts-fetch
 
+[![npm version](https://badge.fury.io/js/ts-fetch.svg)](https://www.npmjs.com/package/ts-fetch)
+[![GitHub version](https://badge.fury.io/gh/erik-beus%2Fts-fetch.svg)](https://github.com/erik-beus/ts-fetch/releases)
+[![CircleCI](https://circleci.com/gh/erik-beus/ts-fetch/tree/master.svg?style=svg)](https://circleci.com/gh/erik-beus/ts-fetch/tree/master)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/erik-beus/ts-fetch/pulls)
+
 Small wrapper around `fetch` making it possible to have type safety around network requests.
 By passing generics it's possible to indicate which types are expected on success/error and work directly with those types.
 `ts-fetch` is slightly opinionated, but it's possible to override all settings. These are the default settings:
