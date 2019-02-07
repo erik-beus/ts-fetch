@@ -1,5 +1,6 @@
 .prettierrc
 tsconfig.json
+renovate.json
 yarn.lock
 .circleci/
 src/
