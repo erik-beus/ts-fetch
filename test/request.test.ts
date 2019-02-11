@@ -5,7 +5,7 @@ const url = 'https://test.com'
 const stubFetch = (
   callback: (requestUrl: RequestInfo, params: RequestInit) => void,
 ) => {
-  jest.spyOn(global, 'fetch' as any).mockImplementationOnce(callback)
+  jest.spyOn(global, 'fetch' as any).mockImplementationOnce(callback as any)
 }
 
 test('maps request params correctly', async () => {
