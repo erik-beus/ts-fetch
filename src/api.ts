@@ -31,7 +31,7 @@ export interface IExtraHeader {
   value: string
 }
 
-export interface IRequestBasicParams<Body extends BodyInit> {
+export interface IRequestBasicParams<Body> {
   body?: Body
   extraHeaders?: IExtraHeader[]
   method?: HttpType
@@ -47,8 +47,7 @@ export interface IValidStatusCode {
   validStatusCodeEnd?: number
 }
 
-export type IRequestParams<B extends BodyInit> = IRequestBasicParams<B> &
-  IValidStatusCode
+export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
 
 // The http types that allow a http body
 const bodyHttpTypes: HttpType[] = ['POST', 'PUT', 'PATCH', 'DELETE']
