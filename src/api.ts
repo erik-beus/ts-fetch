@@ -76,7 +76,7 @@ const defaultRequestParams = {
  * @param url Full path for request - example: https://github.com/api/test
  * @return IJsonStatus object with the parsed data or error
  */
-export function request<Return, Error, Body extends BodyInit = never>(
+export function request<Return, Error, Body>(
   requestParams: IRequestParams<Body>,
 ): Promise<TResponse<Return, Error>> {
   const processedParams = { ...defaultRequestParams, ...requestParams }
@@ -113,7 +113,7 @@ export function request<Return, Error, Body extends BodyInit = never>(
     if (jsonRequest) {
       params.body = JSON.stringify(body)
     } else {
-      params.body = body
+      params.body = body as any
     }
   }
 
