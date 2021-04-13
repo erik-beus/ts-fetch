@@ -1,65 +1,79 @@
 interface IBaseResponse {
-  statusCode?: number
+  statusCode?: number;
 }
 
 interface ISuccessResponse<T> extends IBaseResponse {
-  data: T
-  status: 'OK'
+  data: T;
+  status: "OK";
 }
 
 interface IErrorResponse<E> extends IBaseResponse {
-  errorData: E
-  status: 'ERROR'
+  errorData: E;
+  status: "ERROR";
 }
 
 interface INetworkErrorResponse extends IBaseResponse {
-  networkError: NetworkError
-  status: 'NETWORK_ERROR'
+  networkError: NetworkError;
+  status: "NETWORK_ERROR";
 }
 
 export type TResponse<T, E> =
   | ISuccessResponse<T>
   | IErrorResponse<E>
-  | INetworkErrorResponse
+  | INetworkErrorResponse;
 
-export type NetworkError = 'TIMEOUT' | 'JSON_PARSING' | 'OTHER'
+export type NetworkError = "TIMEOUT" | "JSON_PARSING" | "OTHER";
 
-export type HttpType = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+export type HttpType =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "PATCH"
+  | "DELETE"
+  | "HEAD"
+  | "OPTIONS";
 
 export interface IExtraHeader {
-  key: string
-  value: string
+  key: string;
+  value: string;
 }
 
 export interface IRequestBasicParams<Body> {
-  body?: Body
-  extraHeaders?: IExtraHeader[]
-  method?: HttpType
-  jsonRequest?: boolean
-  jsonResponse?: boolean
-  timeout?: number // timeout in milliseconds
-  url: string
+  body?: Body;
+  extraHeaders?: IExtraHeader[];
+  method?: HttpType;
+  jsonRequest?: boolean;
+  jsonResponse?: boolean;
+  timeout?: number; // timeout in milliseconds
+  url: string;
 }
 
 export interface IValidStatusCode {
-  validStatusCodes?: number[]
-  validStatusCodeStart?: number
-  validStatusCodeEnd?: number
+  validStatusCodes?: number[];
+  validStatusCodeStart?: number;
+  validStatusCodeEnd?: number;
 }
 
-export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode
+export type IRequestParams<B> = IRequestBasicParams<B> & IValidStatusCode;
 
 // The http types that allow a http body
-const bodyHttpTypes: HttpType[] = ['POST', 'PUT', 'PATCH', 'DELETE']
+const bodyHttpTypes: HttpType[] = [
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "HEAD",
+  "OPTIONS",
+];
 
 const defaultRequestParams = {
-  method: 'GET' as HttpType,
+  method: "GET" as HttpType,
   jsonRequest: true,
   jsonResponse: true,
   validStatusCodeStart: 200,
   validStatusCodeEnd: 299,
   timeout: 12000, // 12 seconds default timeout
-}
+};
 
 /**
  * Sends a standard request, and handles JSON parsing and response mapping to TResponse
@@ -79,7 +93,7 @@ const defaultRequestParams = {
 export function request<Return, Error, Body>(
   requestParams: IRequestParams<Body>,
 ): Promise<TResponse<Return, Error>> {
-  const processedParams = { ...defaultRequestParams, ...requestParams }
+  const processedParams = { ...defaultRequestParams, ...requestParams };
   const {
     url,
     method,
@@ -91,29 +105,29 @@ export function request<Return, Error, Body>(
     validStatusCodeStart,
     validStatusCodeEnd,
     timeout,
-  } = processedParams
-  let statusCode: number
-  const headers: Record<string, string> = {}
+  } = processedParams;
+  let statusCode: number;
+  const headers: Record<string, string> = {};
   if (jsonRequest) {
     // Add default JSON headers
-    headers['Content-Type'] = 'application/json'
+    headers["Content-Type"] = "application/json";
   }
   if (jsonResponse) {
     // Add default JSON headers
-    headers['Accept'] = 'application/json'
+    headers["Accept"] = "application/json";
   }
   if (extraHeaders) {
-    extraHeaders.forEach(h => (headers[h.key] = h.value))
+    extraHeaders.forEach(h => (headers[h.key] = h.value));
   }
   const params: RequestInit = {
     method,
     headers,
-  }
+  };
   if (body && bodyHttpTypes.includes(method)) {
     if (jsonRequest) {
-      params.body = JSON.stringify(body)
+      params.body = JSON.stringify(body);
     } else {
-      params.body = body as any
+      params.body = body as any;
     }
   }
 
@@ -122,21 +136,21 @@ export function request<Return, Error, Body>(
     // The promise below will never resolve
     new Promise((_, reject) =>
       setTimeout(() => {
-        statusCode = 408 // Timeout status code
-        const err: NetworkError = 'TIMEOUT'
-        reject(err)
+        statusCode = 408; // Timeout status code
+        const err: NetworkError = "TIMEOUT";
+        reject(err);
       }, timeout),
     ),
   ])
-    .then((res: {} | Response) => {
+    .then((res: unknown) => {
       // response will always be type 'Response'
-      const response = res as Response
-      statusCode = response.status
+      const response = res as Response;
+      statusCode = response.status;
       // TODO: consider using actual response Accept headers to decide on json vs others
       if (jsonResponse) {
-        return response.json()
+        return response.json();
       } else {
-        return response.text()
+        return response.text();
       }
       // TODO: consider using response.formData() as well?
     })
@@ -146,39 +160,42 @@ export function request<Return, Error, Body>(
         validStatusCodes,
         validStatusCodeStart,
         validStatusCodeEnd,
-      })
+      });
       if (validStatusCode) {
         // Success - type is T
         const response: ISuccessResponse<Return> = {
           statusCode,
           data: data as Return,
-          status: 'OK',
-        }
-        return response
+          status: "OK",
+        };
+        return response;
       } else {
         // Error - type is Error
         const response: IErrorResponse<Error> = {
           statusCode,
           errorData: data as Error,
-          status: 'ERROR',
-        }
-        return response
+          status: "ERROR",
+        };
+        return response;
       }
     })
     .catch((err: NetworkError | Error) => {
       // The error is either a timeout ('TIMEOUT'), a network error or a JSON parsing error
       // For now we're only handling the timeout, and calling all others 'OTHER'
-      let networkError: NetworkError = err === 'TIMEOUT' ? 'TIMEOUT' : 'OTHER'
-      if (err.hasOwnProperty('type') && (err as any).type === 'invalid-json') {
-        networkError = 'JSON_PARSING'
+      let networkError: NetworkError = err === "TIMEOUT" ? "TIMEOUT" : "OTHER";
+      if (
+        (err as any).hasOwnProperty("type") &&
+        (err as any).type === "invalid-json"
+      ) {
+        networkError = "JSON_PARSING";
       }
       const response: INetworkErrorResponse = {
         statusCode,
         networkError,
-        status: 'NETWORK_ERROR',
-      }
-      return response
-    })
+        status: "NETWORK_ERROR",
+      };
+      return response;
+    });
 }
 
 const isValidStatusCode = (
@@ -189,14 +206,14 @@ const isValidStatusCode = (
     validStatusCodes,
     validStatusCodeStart,
     validStatusCodeEnd,
-  } = validation
+  } = validation;
   if (validStatusCodes) {
-    return validStatusCodes.find(sc => sc === statusCode) !== undefined
+    return validStatusCodes.find(sc => sc === statusCode) !== undefined;
   }
   if (validStatusCodeStart && validStatusCodeEnd) {
     return (
       statusCode >= validStatusCodeStart && statusCode <= validStatusCodeEnd
-    )
+    );
   }
-  return false
-}
+  return false;
+};
