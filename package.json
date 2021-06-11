@@ -10,7 +10,7 @@
   "typings": "dist/api.d.ts",
   "main": "dist/api.js",
   "dependencies": {
-    "tslib": "2.2.0"
+    "tslib": "2.3.0"
   },
   "devDependencies": {
     "@types/jest": "26.0.22",
