@@ -49,4 +49,28 @@ if (response.status === 'OK') {
   // Work with the returned error data that you expect in your response
 }
 ```
-More examples will follow ...
+
+### Request blob data, read return headers
+```ts
+const response = await request<never, { errorCode: number }>({
+  url: 'https://myapi.com',
+  body: { name: 'Updated name of user' },
+  method: 'PUT',
+  jsonResponse: false, // Response will not be in JSON
+  timeout: 1000, // Only 1 second timeout
+  validStatusCodes: [201], // Only 201 indicates success
+  extraHeaders: [{ key: 'Secret', value: '2lknf3oihvls' }, { key: 'Accept', value: 'application/octet-stream' }],
+})
+if (response.status === 'OK') {
+  // Things went well 👍
+
+  // Useful for example for injecting img src with data from the response
+  console.log(URL.createObjectURL(response.data));
+  console.log(response.headers['content-type']);
+} else if (response.status === 'NETWORK_ERROR') {
+  // Handle network error
+} else {
+  // Work with the returned error data that you expect in your response
+}
+```
+
