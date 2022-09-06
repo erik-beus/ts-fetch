@@ -52,14 +52,11 @@ if (response.status === 'OK') {
 
 ### Request blob data, read return headers
 ```ts
-const response = await request<never, { errorCode: number }>({
+const response = await request<Blob, never>({
   url: 'https://myapi.com',
-  body: { name: 'Updated name of user' },
-  method: 'PUT',
+  method: 'POST',
   jsonResponse: false, // Response will not be in JSON
-  timeout: 1000, // Only 1 second timeout
-  validStatusCodes: [201], // Only 201 indicates success
-  extraHeaders: [{ key: 'Secret', value: '2lknf3oihvls' }, { key: 'Accept', value: 'application/octet-stream' }],
+  extraHeaders: [{ key: 'Accept', value: 'application/octet-stream' }],
 })
 if (response.status === 'OK') {
   // Things went well 👍
