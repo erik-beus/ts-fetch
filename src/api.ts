@@ -185,8 +185,6 @@ export function request<Return, Error, Body>(
     .catch((err: NetworkError | Error) => {
       // The error is either a timeout ('TIMEOUT'), a network error or a JSON parsing error
       // For now we're only handling the timeout, and calling all others 'OTHER'
-      console.log(err);
-      console.log("----------------- 2");
       let networkError: NetworkError = err === "TIMEOUT" ? "TIMEOUT" : "OTHER";
       if (
         (err as any).hasOwnProperty("type") &&
