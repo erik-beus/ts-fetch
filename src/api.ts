@@ -146,13 +146,16 @@ export function request<Return, Error, Body>(
       // response will always be type 'Response'
       const response = res as Response;
       statusCode = response.status;
-      // TODO: consider using actual response Accept headers to decide on json vs others
-      if (jsonResponse) {
-        return response.json();
-      } else {
-        return response.text();
+      switch(headers["Accept"]) {
+        case "application/octet-stream":
+          return response.blob();
+        case "application/json":
+          return response.json();
+        case "multipart/form-data":
+          return response.formData();
+        default: 
+          return response.text();
       }
-      // TODO: consider using response.formData() as well?
     })
     .then((data: Return | Error) => {
       // Allow expecting something other than 200s
@@ -182,6 +185,8 @@ export function request<Return, Error, Body>(
     .catch((err: NetworkError | Error) => {
       // The error is either a timeout ('TIMEOUT'), a network error or a JSON parsing error
       // For now we're only handling the timeout, and calling all others 'OTHER'
+      console.log(err);
+      console.log("----------------- 2");
       let networkError: NetworkError = err === "TIMEOUT" ? "TIMEOUT" : "OTHER";
       if (
         (err as any).hasOwnProperty("type") &&
