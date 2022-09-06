@@ -4,6 +4,7 @@ interface IBaseResponse {
 
 interface ISuccessResponse<T> extends IBaseResponse {
   data: T;
+  headers?: Record<string, string>;
   status: "OK";
 }
 
@@ -131,6 +132,7 @@ export function request<Return, Error, Body>(
     }
   }
 
+  let responseHeaders: Record<string, string> = {};
   return Promise.race([
     fetch(url, params),
     // The promise below will never resolve
@@ -145,6 +147,7 @@ export function request<Return, Error, Body>(
     .then((res: unknown) => {
       // response will always be type 'Response'
       const response = res as Response;
+      response.headers.forEach((value, key) => responseHeaders[key] = value);
       statusCode = response.status;
       switch(headers["Accept"]) {
         case "application/octet-stream":
@@ -169,6 +172,7 @@ export function request<Return, Error, Body>(
         const response: ISuccessResponse<Return> = {
           statusCode,
           data: data as Return,
+          headers: responseHeaders, 
           status: "OK",
         };
         return response;
